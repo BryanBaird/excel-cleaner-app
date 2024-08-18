@@ -83,21 +83,36 @@
   function getIndexColumns(dataframe) {
     let header_row = dataframe[0];
     let matched_raw_values = [];
-    let matched_col_indeces = [];
+    let matched_col_indices = [];
     let matched_standardized_values = [];
     header_row.forEach((element, index) => {
       if (Object.keys(ALL_INDEX_COLUMN_MAPPINGS).includes(element)) {
         matched_raw_values.push(element);
-        matched_col_indeces.push(index);
+        matched_col_indices.push(index);
         matched_standardized_values.push(ALL_INDEX_COLUMN_MAPPINGS[element]);
       }
     });
 
     return [
       matched_raw_values,
-      matched_col_indeces,
+      matched_col_indices,
       matched_standardized_values,
     ];
+  }
+
+  function getNonIndexCoumns(dataframe) {
+    let [index_column_labels, index_column_indices, _] =
+      getIndexColumns(dataframe);
+    let header_row = dataframe[0];
+    // This monstrosity is apparently the best way to do a `range` operation in JavaScript
+    let dataframe_column_indices = [...Array(header_row.length).keys()];
+
+    let matched_col_indices = dataframe_column_indices.filter(
+      (i) => !index_column_indices.includes(i)
+    );
+    let matched_raw_values = matched_col_indices.map((i) => header_row[i]);
+    //let matched_standardized_values = [];
+    return [matched_raw_values, matched_col_indices];
   }
 
   function trimTrailingRows(dataframe) {
@@ -139,6 +154,41 @@
     // Important to note for point (2) does *not* apply to all zeroes --
     // That may be "real" 0s, or it could be "fake"; it can't be immediately
     // determined without context.
+  }
+
+  function pivot_to_tall(
+    dataframe,
+    new_index_column_label = "column",
+    new_value_column_label = "value"
+  ) {
+    // It is not clear that JavaScript has a more efficient transformation means
+    // readily available, so we use the basic loop version of iterating over all
+    // input rows and appending them to an output data structure.
+    // TODO: Consider whether index column information should be passed in, versus (re) derived here.
+    let [index_columns_labels, index_column_indices, _] =
+      getIndexColumns(dataframe);
+    let [value_columns_labels, value_column_indices] =
+      getNonIndexCoumns(dataframe);
+
+    let output = [
+      ...index_columns_labels,
+      new_index_column_label,
+      new_value_column_label,
+    ];
+
+    for (let i = 1; i < dataframe.length; i++) {
+      let row_contents = dataframe[i];
+      let row_index_values = index_column_indices.map((x) => row_contents[x]);
+      //let row_content_values = row_contents[value_column_indices];
+      for (let j = 0; j <= value_column_indices.length; j++) {
+        output.push([
+          ...row_index_values,
+          value_columns_labels[j],
+          row_contents[j],
+        ]);
+      }
+    }
+    return output;
   }
 </script>
 
@@ -195,7 +245,8 @@
         detected_index_columns = getIndexColumns(trimmed_array);
         [trimmed_array, trimmed_trailing_rows] =
           trimTrailingRows(trimmed_array);
-        debugger;
+        console.log("Behold, a tall table");
+        console.log(pivot_to_tall(trimmed_array));
       }}
     >
       Trim excess header and trailing rows from this table
