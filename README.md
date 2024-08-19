@@ -1,9 +1,9 @@
 # Basic Excel parse-and-clean application using Flask and Svelte
 
 ## Purpose
-Data scientists and data professionals love clean, orderly, well-formatted data. This may be "tidy" data, or it may be "tall" data for effiencit engineering or storage, or it may be some other format. But it usually emphasizes machine-readability and compatibility with code-based tools.
+Data scientists and data professionals love clean, orderly, well-formatted data. This may be "tidy" data, or it may be "tall" data for efficient engineering or storage, or it may be some other format. But it usually emphasizes machine-readability and compatibility with code-based tools.
 
-But in the real world, Excel spreadsheets are still a very common means of not only analyzing data, but also for data entry and collection, especially amongst non-data professionals.
+In the real world, however, Excel spreadsheets are still a very common means of not only analyzing data, but also for data entry and collection, especially amongst non-data professionals. These spreadsheets have formatting meant to benefit humans -- though often inconsistently applied. There are typos and quirks and messy data anomalies that often require fairly advanced tools to address effectively. So data scientists and engineers often spend a massive amount of their time on this data cleaning -- even when the cleaning requires knowledge or assumptions about the data that is much better understood by someone other than the data scientist!
 
 This concept application is meant to provide an easy but customizable framework for use cases where the person submitting the data (as an Excel file) might not be the same as a data professional who is used to cleaning data with R, Python, or other similar tools. It is meant to quickly and efficiently transform the data directly within the submitter's browser, with low compute setup required, and no unnecessary steps being kicked off to a server that might process using some other technology. (Though in the future, this application will be set up to be extensible for different ways to `POST` and upload the data structure at the end.)
 
