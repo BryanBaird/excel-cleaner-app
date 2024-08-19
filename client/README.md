@@ -10,8 +10,14 @@
 
 ## Making changes
 Svelte is a complied language, with the output being "vanilla" JavaScript, HTML, and CSS. After making a modification to anything in the `src` directory, you will need to re-build by running the following commmand from the command line _within this directory_.
-```npm run build```
+
+> ```npm run build```
+
+If you are only testing changes to the client, and aren't dependent on or modifying any logic within the Flask server (which as of this writing, amounts to very little), then you can more easily run in `dev` mode, which will auto-build whenever an underlying file is changed and saved, while also running a test deployment server without the need for `Flask` at all. To do so, use:
+
+> ```npm run dev```
+
 (This assumes npm and Svelte are both installed. Details on that to come.)
 
 ## Key dependencies
- - The "xlsx" library here is the main pillar for initially parsing in the input Excel file to a JavaScript Array of Arrays that can then be manipulated using vanilla JavaScript logic. (Or, if needed in the future, some other JavaScript library/structure that is more suited to tabular data structures, a la Python's `pandas` or R's dataframes.)
+ - The ["xlsx" library here](https://www.npmjs.com/package/xlsx), courtesy of the SheetJS community, is the main pillar for initially parsing in the input Excel file to a JavaScript Array of Arrays that can then be manipulated using vanilla JavaScript logic. (Or, if needed in the future, some other JavaScript library/structure that is more suited to tabular data structures, a la Python's `pandas` or R's dataframes.)
