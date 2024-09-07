@@ -1,7 +1,8 @@
 <script>
   import { read } from "xlsx";
   let files, fileInput;
-  export let workbook;
+  import {workbook} from './stores.js'
+  //export let workbook;
 
   $: if (files) {
     console.log(`${files[0].name}`);
@@ -13,9 +14,9 @@
     var reader = new FileReader();
     reader.onload = (e) => {
       let data = e.target.result;
-      workbook = read(data);
+      workbook.set(read(data));
       console.log("workbook object read from data:");
-      console.log(workbook);
+      //console.log(workbook);
     };
     reader.readAsArrayBuffer(my_file);
   }
@@ -39,7 +40,7 @@
       on:click={() => {
         console.log(`${files[0].name} will be processed`);
         parseExcelFile(files[0]);
-        console.log(workbook);
+        //console.log(workbook);
       }}
     >
       Confirm and process

@@ -1,10 +1,12 @@
 <script>
   import { utils } from "xlsx";
+  import {workbook} from './stores.js'
   import FileInput from './FileInput.svelte';
   import SheetTrimmer from './SheetTrimmer.svelte';
-  let workbook;
+  let workbookVal;
+  const unsubscribe = workbook.subscribe((value) => workbookVal = value);
   // TODO: Option for more than one active sheet
-  $: active_sheet = workbook ? workbook.Sheets[workbook.SheetNames[0]] : null;
+  $: active_sheet = workbookVal ? workbookVal.Sheets[workbookVal.SheetNames[0]] : null;
   let trimmed_array = [];
   //TODO: Remove this block -- possibly shift to stores?
   let trimmed_header_rows = [];
@@ -159,7 +161,7 @@
     Then, step-by-step cleaning functions will help transform it to a clean,
     tall table, accounting for some common cases along the way.
   </p>
-  <FileInput bind:workbook/>
+  <FileInput />
   
   {#if parsed_original_HTML}
     <SheetTrimmer parsed_original_HTML = {parsed_original_HTML} bind:active_sheet bind:trimmed_array/>
