@@ -1,17 +1,22 @@
 <script>
-  import { read, utils } from "xlsx";
+  import { utils } from "xlsx";
   import FileInput from './FileInput.svelte';
+  import SheetTrimmer from './SheetTrimmer.svelte';
   let workbook;
+  // TODO: Option for more than one active sheet
   $: active_sheet = workbook ? workbook.Sheets[workbook.SheetNames[0]] : null;
-
   let trimmed_array = [];
+  //TODO: Remove this block -- possibly shift to stores?
   let trimmed_header_rows = [];
   let trimmed_trailing_rows = [];
-  let tall_array = [];
+  $: detected_index_columns = trimmed_array.length > 0 ? getIndexColumns(trimmed_array) : null;
+
   $: trimmed_header_rows_count = trimmed_header_rows.length;
   $: trimmed_trailing_rows_count = trimmed_trailing_rows.length;
+  // End todo 
 
-  const COMPLETE_COLUMNS_RATIO = 0.9;
+  let tall_array = [];
+  
   const DATE_COLUMN_MAPPINGS = {
     Year: "year",
     Month: "month",
@@ -37,7 +42,7 @@
     ...CUSTOM_INDEX_COLUMN_MAPPINGS,
   };
 
-  let detected_index_columns = [];
+  
 
   $: parsed_original_HTML = active_sheet
     ? utils.sheet_to_html(active_sheet)
@@ -51,25 +56,7 @@
     ? utils.sheet_to_html(utils.aoa_to_sheet(tall_array))
     : null;
 
-  function trimHeaderRows(dataframe) {
-    console.log("Here's what we're working with:");
-    console.log(dataframe);
-    let df = utils.sheet_to_json(dataframe, { header: 1 });
-    let full_cols_count = count_columns(df);
-    let COMPLETE_COLUMNS_THRESHOLD = full_cols_count * COMPLETE_COLUMNS_RATIO;
-    let first_true_row_index = 0;
-    for (let i = 0; i <= df.length; i++) {
-      // TODO: Filter out datum entries that don't "count" as "real" content
-      if (df[i].length >= COMPLETE_COLUMNS_THRESHOLD) {
-        first_true_row_index = i;
-        break;
-      }
-    }
-    return [
-      /*remaining:*/ df.slice(first_true_row_index, df.length),
-      /*removed:*/ df.slice(0, first_true_row_index),
-    ];
-  }
+
 
   function getIndexColumns(dataframe) {
     let header_row = dataframe[0];
@@ -104,37 +91,6 @@
     let matched_raw_values = matched_col_indices.map((i) => header_row[i]);
     //let matched_standardized_values = [];
     return [matched_raw_values, matched_col_indices];
-  }
-
-  function trimTrailingRows(dataframe) {
-    console.log("Here's what we're working with after headers:");
-    console.log(dataframe);
-    let last_true_row_index = dataframe.length - 1;
-    //debugger;
-    for (let i = dataframe.length - 1; i >= 0; i--) {
-      // A valid ending row has nonnull values for all index columns
-      // We can be even more expansive and say that all index columns need
-      // to have JS "truthy" values to avoid issues of empty strings, etc.
-      let detected_index_values = detected_index_columns[1].map(
-        (x) => dataframe[i][x]
-      );
-      if (detected_index_values.every(Boolean)) {
-        last_true_row_index = i;
-        break;
-      }
-    }
-    let output = [
-      /*remaining:*/ dataframe.slice(0, last_true_row_index + 1),
-      /*removed:*/ dataframe.slice(last_true_row_index + 1, dataframe.length),
-    ];
-    return output;
-  }
-
-  function count_columns(dataframe) {
-    return dataframe.reduce(
-      (maxLen, el, i, arr) => (el.length > maxLen ? el.length : maxLen),
-      0
-    );
   }
 
   function get_fake_columns(dataframe) {
@@ -206,21 +162,7 @@
   <FileInput bind:workbook/>
   
   {#if parsed_original_HTML}
-    <h3>Input data</h3>
-    <div id="step-1-data" class="big-html-table">
-      {@html parsed_original_HTML}
-    </div>
-    <button
-      on:click={() => {
-        [trimmed_array, trimmed_header_rows] = trimHeaderRows(active_sheet);
-        //trimmed_header_row_count = trimmed_header_rows.length
-        detected_index_columns = getIndexColumns(trimmed_array);
-        [trimmed_array, trimmed_trailing_rows] =
-          trimTrailingRows(trimmed_array);
-      }}
-    >
-      Trim excess header and trailing rows from this table
-    </button>
+    <SheetTrimmer parsed_original_HTML = {parsed_original_HTML} bind:active_sheet bind:trimmed_array/>
   {/if}
   {#if trimmed_array.length}
     <h3>Trimmed data</h3>
@@ -284,10 +226,3 @@
   {/if}
 </div>
 
-<style>
-  div.big-html-table {
-    height: 230px;
-    width: 900px;
-    overflow: scroll;
-  }
-</style>
