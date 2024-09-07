@@ -1,7 +1,9 @@
 <script>
   import { read, utils } from "xlsx";
-  let files, fileInput;
+  import FileInput from './FileInput.svelte';
   let workbook;
+  $: active_sheet = workbook ? workbook.Sheets[workbook.SheetNames[0]] : null;
+
   let trimmed_array = [];
   let trimmed_header_rows = [];
   let trimmed_trailing_rows = [];
@@ -37,12 +39,6 @@
 
   let detected_index_columns = [];
 
-  $: if (files) {
-    console.log(`${files[0].name}`);
-  }
-
-  $: active_sheet = workbook ? workbook.Sheets[workbook.SheetNames[0]] : null;
-
   $: parsed_original_HTML = active_sheet
     ? utils.sheet_to_html(active_sheet)
     : null;
@@ -54,19 +50,6 @@
   $: tall_data_as_HTML_table = tall_array.length
     ? utils.sheet_to_html(utils.aoa_to_sheet(tall_array))
     : null;
-
-  function parseExcelFile(my_file) {
-    console.log("inside parse function with parameter my_file below:");
-    console.log(my_file);
-    var reader = new FileReader();
-    reader.onload = (e) => {
-      let data = e.target.result;
-      workbook = read(data);
-      console.log("workbook object read from data:");
-      console.log(workbook);
-    };
-    reader.readAsArrayBuffer(my_file);
-  }
 
   function trimHeaderRows(dataframe) {
     console.log("Here's what we're working with:");
@@ -220,30 +203,8 @@
     Then, step-by-step cleaning functions will help transform it to a clean,
     tall table, accounting for some common cases along the way.
   </p>
-
-  <label for="file_picker">Select an data file to process: </label>
-  <input
-    bind:files
-    bind:this={fileInput}
-    type="file"
-    id="file_picker"
-    name="file_picker"
-    accept=".xls,.xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-  />
-
-  {#if files}
-    <h3>Selected file:</h3>
-    {files[0].name}
-    <button
-      on:click={() => {
-        console.log(`${files[0].name} will be processed`);
-        parseExcelFile(files[0]);
-        console.log(workbook);
-      }}
-    >
-      Confirm and process
-    </button>
-  {/if}
+  <FileInput bind:workbook/>
+  
   {#if parsed_original_HTML}
     <h3>Input data</h3>
     <div id="step-1-data" class="big-html-table">
